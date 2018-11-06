@@ -62,12 +62,11 @@ end
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
 
-
 gem 'spree', '~> 3.6.3'
 gem 'spree_auth_devise', '~> 3.3'
 gem 'spree_gateway', '~> 3.3'
 
-
+gem 'spree_api_auth', path: '../spree_api_auth'
 
 
 #Static Content
@@ -89,5 +88,5 @@ gem 'social-share-button'
 #Enable CORS para soportar un front end externo
 gem 'rack-cors', require: 'rack/cors'
 
-gem 'spree_api_auth', path: '../spree_api_auth'
+
 #gem 'spree_ams', github: 'vinsol/spree_ams', branch: '3-1-stable'
