@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_08_29_172738) do
+ActiveRecord::Schema.define(version: 2019_03_11_210859) do
 
   create_table "active_storage_attachments", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
     t.string "name", null: false
@@ -148,7 +148,9 @@ ActiveRecord::Schema.define(version: 2018_08_29_172738) do
     t.integer "user_id"
     t.integer "payment_method_id"
     t.boolean "default", default: false, null: false
+    t.datetime "deleted_at"
     t.index ["address_id"], name: "index_spree_credit_cards_on_address_id"
+    t.index ["deleted_at"], name: "index_spree_credit_cards_on_deleted_at"
     t.index ["payment_method_id"], name: "index_spree_credit_cards_on_payment_method_id"
     t.index ["user_id"], name: "index_spree_credit_cards_on_user_id"
   end
@@ -226,6 +228,47 @@ ActiveRecord::Schema.define(version: 2018_08_29_172738) do
     t.index ["source_id", "source_type"], name: "index_spree_log_entries_on_source_id_and_source_type"
   end
 
+  create_table "spree_oauth_access_grants", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+    t.integer "resource_owner_id", null: false
+    t.bigint "application_id", null: false
+    t.string "token", null: false
+    t.integer "expires_in", null: false
+    t.text "redirect_uri", null: false
+    t.datetime "created_at", null: false
+    t.datetime "revoked_at"
+    t.string "scopes"
+    t.index ["application_id"], name: "index_spree_oauth_access_grants_on_application_id"
+    t.index ["token"], name: "index_spree_oauth_access_grants_on_token", unique: true
+  end
+
+  create_table "spree_oauth_access_tokens", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+    t.integer "resource_owner_id"
+    t.bigint "application_id"
+    t.string "token", null: false
+    t.string "refresh_token"
+    t.integer "expires_in"
+    t.datetime "revoked_at"
+    t.datetime "created_at", null: false
+    t.string "scopes"
+    t.string "previous_refresh_token", default: "", null: false
+    t.index ["application_id"], name: "index_spree_oauth_access_tokens_on_application_id"
+    t.index ["refresh_token"], name: "index_spree_oauth_access_tokens_on_refresh_token", unique: true
+    t.index ["resource_owner_id"], name: "index_spree_oauth_access_tokens_on_resource_owner_id"
+    t.index ["token"], name: "index_spree_oauth_access_tokens_on_token", unique: true
+  end
+
+  create_table "spree_oauth_applications", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "uid", null: false
+    t.string "secret", null: false
+    t.text "redirect_uri", null: false
+    t.string "scopes", default: "", null: false
+    t.boolean "confidential", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["uid"], name: "index_spree_oauth_applications_on_uid", unique: true
+  end
+
   create_table "spree_option_type_prototypes", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
     t.integer "prototype_id"
     t.integer "option_type_id"
@@ -251,8 +294,10 @@ ActiveRecord::Schema.define(version: 2018_08_29_172738) do
     t.integer "position", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "vendor_id"
     t.index ["name"], name: "index_spree_option_types_on_name"
     t.index ["position"], name: "index_spree_option_types_on_position"
+    t.index ["vendor_id"], name: "index_spree_option_types_on_vendor_id"
   end
 
   create_table "spree_option_value_translations", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
@@ -324,7 +369,7 @@ ActiveRecord::Schema.define(version: 2018_08_29_172738) do
     t.datetime "approved_at"
     t.boolean "confirmation_delivered", default: false
     t.boolean "considered_risky", default: false
-    t.string "guest_token"
+    t.string "token"
     t.datetime "canceled_at"
     t.integer "canceler_id"
     t.integer "store_id"
@@ -338,10 +383,10 @@ ActiveRecord::Schema.define(version: 2018_08_29_172738) do
     t.index ["confirmation_delivered"], name: "index_spree_orders_on_confirmation_delivered"
     t.index ["considered_risky"], name: "index_spree_orders_on_considered_risky"
     t.index ["created_by_id"], name: "index_spree_orders_on_created_by_id"
-    t.index ["guest_token"], name: "index_spree_orders_on_guest_token"
     t.index ["number"], name: "index_spree_orders_on_number", unique: true
     t.index ["ship_address_id"], name: "index_spree_orders_on_ship_address_id"
     t.index ["store_id"], name: "index_spree_orders_on_store_id"
+    t.index ["token"], name: "index_spree_orders_on_token"
     t.index ["user_id", "created_by_id"], name: "index_spree_orders_on_user_id_and_created_by_id"
   end
 
@@ -447,6 +492,8 @@ ActiveRecord::Schema.define(version: 2018_08_29_172738) do
     t.decimal "amount", precision: 10, scale: 2
     t.string "currency"
     t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["deleted_at"], name: "index_spree_prices_on_deleted_at"
     t.index ["variant_id", "currency"], name: "index_spree_prices_on_variant_id_and_currency"
     t.index ["variant_id"], name: "index_spree_prices_on_variant_id"
@@ -524,6 +571,7 @@ ActiveRecord::Schema.define(version: 2018_08_29_172738) do
     t.datetime "updated_at", null: false
     t.boolean "promotionable", default: true
     t.string "meta_title"
+    t.integer "vendor_id"
     t.index ["available_on"], name: "index_spree_products_on_available_on"
     t.index ["deleted_at"], name: "index_spree_products_on_deleted_at"
     t.index ["discontinue_on"], name: "index_spree_products_on_discontinue_on"
@@ -531,6 +579,7 @@ ActiveRecord::Schema.define(version: 2018_08_29_172738) do
     t.index ["shipping_category_id"], name: "index_spree_products_on_shipping_category_id"
     t.index ["slug"], name: "index_spree_products_on_slug", unique: true
     t.index ["tax_category_id"], name: "index_spree_products_on_tax_category_id"
+    t.index ["vendor_id"], name: "index_spree_products_on_vendor_id"
   end
 
   create_table "spree_products_taxons", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
@@ -633,7 +682,9 @@ ActiveRecord::Schema.define(version: 2018_08_29_172738) do
     t.string "presentation"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "vendor_id"
     t.index ["name"], name: "index_spree_properties_on_name"
+    t.index ["vendor_id"], name: "index_spree_properties_on_vendor_id"
   end
 
   create_table "spree_property_prototypes", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
@@ -854,8 +905,10 @@ ActiveRecord::Schema.define(version: 2018_08_29_172738) do
     t.string "admin_name"
     t.integer "tax_category_id"
     t.string "code"
+    t.integer "vendor_id"
     t.index ["deleted_at"], name: "index_spree_shipping_methods_on_deleted_at"
     t.index ["tax_category_id"], name: "index_spree_shipping_methods_on_tax_category_id"
+    t.index ["vendor_id"], name: "index_spree_shipping_methods_on_vendor_id"
   end
 
   create_table "spree_shipping_rates", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
@@ -925,11 +978,13 @@ ActiveRecord::Schema.define(version: 2018_08_29_172738) do
     t.boolean "backorderable_default", default: false
     t.boolean "propagate_all_variants", default: true
     t.string "admin_name"
+    t.integer "vendor_id"
     t.index ["active"], name: "index_spree_stock_locations_on_active"
     t.index ["backorderable_default"], name: "index_spree_stock_locations_on_backorderable_default"
     t.index ["country_id"], name: "index_spree_stock_locations_on_country_id"
     t.index ["propagate_all_variants"], name: "index_spree_stock_locations_on_propagate_all_variants"
     t.index ["state_id"], name: "index_spree_stock_locations_on_state_id"
+    t.index ["vendor_id"], name: "index_spree_stock_locations_on_vendor_id"
   end
 
   create_table "spree_stock_movements", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
@@ -1233,6 +1288,7 @@ ActiveRecord::Schema.define(version: 2018_08_29_172738) do
     t.integer "tax_category_id"
     t.datetime "updated_at", null: false
     t.datetime "created_at", null: false
+    t.integer "vendor_id"
     t.index ["deleted_at"], name: "index_spree_variants_on_deleted_at"
     t.index ["discontinue_on"], name: "index_spree_variants_on_discontinue_on"
     t.index ["is_master"], name: "index_spree_variants_on_is_master"
@@ -1241,6 +1297,26 @@ ActiveRecord::Schema.define(version: 2018_08_29_172738) do
     t.index ["sku"], name: "index_spree_variants_on_sku"
     t.index ["tax_category_id"], name: "index_spree_variants_on_tax_category_id"
     t.index ["track_inventory"], name: "index_spree_variants_on_track_inventory"
+    t.index ["vendor_id"], name: "index_spree_variants_on_vendor_id"
+  end
+
+  create_table "spree_vendor_users", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+    t.integer "vendor_id"
+    t.integer "user_id"
+    t.index ["user_id"], name: "index_spree_vendor_users_on_user_id"
+    t.index ["vendor_id", "user_id"], name: "index_spree_vendor_users_on_vendor_id_and_user_id", unique: true
+    t.index ["vendor_id"], name: "index_spree_vendor_users_on_vendor_id"
+  end
+
+  create_table "spree_vendors", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string "state"
+    t.datetime "deleted_at"
+    t.index ["deleted_at"], name: "index_spree_vendors_on_deleted_at"
+    t.index ["name"], name: "index_spree_vendors_on_name", unique: true
+    t.index ["state"], name: "index_spree_vendors_on_state"
   end
 
   create_table "spree_zone_members", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
@@ -1265,4 +1341,6 @@ ActiveRecord::Schema.define(version: 2018_08_29_172738) do
     t.index ["kind"], name: "index_spree_zones_on_kind"
   end
 
+  add_foreign_key "spree_oauth_access_grants", "spree_oauth_applications", column: "application_id"
+  add_foreign_key "spree_oauth_access_tokens", "spree_oauth_applications", column: "application_id"
 end
