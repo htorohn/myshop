@@ -67,7 +67,7 @@ gem 'spree_auth_devise', '~> 3.5'
 gem 'spree_gateway', '~> 3.4'
 
 gem 'spree_api_auth', path: '../spree_api_auth'
-#gem 'spree_multi_vendor', github: 'spree-contrib/spree_multi_vendor'
+gem 'spree_multi_vendor', github: 'spree-contrib/spree_multi_vendor'
 
 
 #Static Content
@@ -89,5 +89,5 @@ gem 'social-share-button'
 #Enable CORS para soportar un front end externo
 gem 'rack-cors', require: 'rack/cors'
 
-
+gem 'spree_better_taxon_image', github: 'htorohn/spree-better-taxon-image'
 #gem 'spree_ams', github: 'vinsol/spree_ams', branch: '3-1-stable'

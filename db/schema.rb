@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_03_11_210859) do
+ActiveRecord::Schema.define(version: 2019_03_18_172108) do
 
   create_table "active_storage_attachments", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
     t.string "name", null: false
@@ -329,6 +329,17 @@ ActiveRecord::Schema.define(version: 2019_03_11_210859) do
     t.index ["name"], name: "index_spree_option_values_on_name"
     t.index ["option_type_id"], name: "index_spree_option_values_on_option_type_id"
     t.index ["position"], name: "index_spree_option_values_on_position"
+  end
+
+  create_table "spree_order_commissions", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+    t.integer "order_id"
+    t.integer "vendor_id"
+    t.float "amount"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.index ["order_id", "vendor_id"], name: "index_spree_order_commissions_on_order_id_and_vendor_id", unique: true
+    t.index ["order_id"], name: "index_spree_order_commissions_on_order_id"
+    t.index ["vendor_id"], name: "index_spree_order_commissions_on_vendor_id"
   end
 
   create_table "spree_order_promotions", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
@@ -1314,8 +1325,14 @@ ActiveRecord::Schema.define(version: 2019_03_11_210859) do
     t.datetime "updated_at"
     t.string "state"
     t.datetime "deleted_at"
+    t.string "slug"
+    t.text "about_us"
+    t.text "contact_us"
+    t.float "commission_rate", default: 5.0
+    t.integer "priority"
     t.index ["deleted_at"], name: "index_spree_vendors_on_deleted_at"
     t.index ["name"], name: "index_spree_vendors_on_name", unique: true
+    t.index ["slug"], name: "index_spree_vendors_on_slug", unique: true
     t.index ["state"], name: "index_spree_vendors_on_state"
   end
 
